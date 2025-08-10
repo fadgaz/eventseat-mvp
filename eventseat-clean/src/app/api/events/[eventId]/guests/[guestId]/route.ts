@@ -3,10 +3,11 @@ import { storage } from '@/lib/storage';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { eventId: string; guestId: string } }
+  { params }: { params: Promise<{ eventId: string; guestId: string }> }
 ) {
   try {
-    const success = storage.deleteGuest(params.eventId, params.guestId);
+    const { eventId, guestId } = await params;
+    const success = storage.deleteGuest(eventId, guestId);
     
     if (!success) {
       return NextResponse.json(
@@ -23,4 +24,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}
