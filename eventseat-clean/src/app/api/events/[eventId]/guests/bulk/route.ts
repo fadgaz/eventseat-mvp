@@ -3,9 +3,10 @@ import { storage } from '@/lib/storage';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const { eventId } = await params;
     const body = await request.json();
     const { guests } = body;
 
@@ -27,7 +28,7 @@ export async function POST(
         continue;
       }
 
-      const guest = storage.addGuest(params.eventId, {
+      const guest = storage.addGuest(eventId, {
         name,
         tableNumber: parseInt(tableNumber),
         seatNumber,
@@ -40,25 +41,20 @@ export async function POST(
       }
     }
 
-    if (addedGuests.length === 0) {
-      return NextResponse.json(
-        { error: 'No guests were added', details: errors },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json({
-      success: true,
-      addedGuests,
-      count: addedGuests.length,
-      errors: errors.length > 0 ? errors : undefined,
-    }, { status: 201 });
-
+      added: addedGuests,
+      errors,
+      summary: {
+        total: guests.length,
+        added: addedGuests.length,
+        errors: errors.length,
+      },
+    });
   } catch (error) {
-    console.error('Error bulk adding guests:', error);
+    console.error('Error adding bulk guests:', error);
     return NextResponse.json(
-      { error: 'Failed to add guests' },
+      { error: 'Failed to add bulk guests' },
       { status: 500 }
     );
   }
-} 
+}
