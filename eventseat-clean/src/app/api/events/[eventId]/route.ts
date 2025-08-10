@@ -3,10 +3,11 @@ import { storage } from '@/lib/storage';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const event = storage.getEvent(params.eventId);
+    const { eventId } = await params;
+    const event = storage.getEvent(eventId);
     
     if (!event) {
       return NextResponse.json(
@@ -23,4 +24,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}
